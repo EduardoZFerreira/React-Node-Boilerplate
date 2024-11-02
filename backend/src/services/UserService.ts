@@ -3,6 +3,7 @@ import { ICreateUserRequest } from "../interfaces/requests/ICreateUserRequest";
 import prismaClient from "../prisma/prismaClient";
 import { userValidator } from "../validators/UserValidator";
 import { CreateUserResponseDTO } from "../DTOs/CreateUserResponseDTO";
+import { Role } from "../config/roles";
 
 class UserService {
   async getEmailInUse(email: string) {
@@ -44,9 +45,38 @@ class UserService {
         },
       });
 
+      await this.addUserRole(newUser.id, Role.USER);
+
       return new CreateUserResponseDTO(false, [], newUser.id);
     } catch (error: any) {
       return new CreateUserResponseDTO(true, [error.message]);
+    }
+  }
+
+  async addUserRole(userId: number, role: Role) {
+    const dbRole = await prismaClient.role.findFirst({
+      where: {
+        title: role,
+      },
+    });
+
+    if (!dbRole) throw new Error("Unknown role");
+
+    const user = await prismaClient.user.findFirst({
+      where: { id: userId },
+    });
+
+    if (!user) throw new Error("User does not exist");
+
+    try {
+      await prismaClient.userRole.create({
+        data: {
+          userId: userId,
+          roleId: dbRole.id,
+        },
+      });
+    } catch (error: any) {
+      throw new Error(error.message);
     }
   }
 }
