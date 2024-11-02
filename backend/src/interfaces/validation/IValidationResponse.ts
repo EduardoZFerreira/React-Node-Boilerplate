@@ -1,4 +1,4 @@
 interface IValidationResponse {
   valid: boolean;
-  errors?: string[];
+  errors: string[];
 }
