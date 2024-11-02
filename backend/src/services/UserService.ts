@@ -2,6 +2,7 @@ import { genSalt, hash } from "bcrypt";
 import { ICreateUserRequest } from "../interfaces/requests/ICreateUserRequest";
 import prismaClient from "../prisma/prismaClient";
 import { userValidator } from "../validators/UserValidator";
+import { CreateUserResponseDTO } from "../DTOs/CreateUserResponseDTO";
 
 class UserService {
   async getEmailInUse(email: string) {
@@ -42,9 +43,10 @@ class UserService {
           password: passwordHash,
         },
       });
+
       return new CreateUserResponseDTO(false, [], newUser.id);
-    } catch (error) {
-      return new CreateUserResponseDTO(true, [error as string]);
+    } catch (error: any) {
+      return new CreateUserResponseDTO(true, [error.message]);
     }
   }
 }

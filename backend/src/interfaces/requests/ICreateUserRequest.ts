@@ -1,5 +1,4 @@
 interface ICreateUserRequest {
-  id: Number;
   name: string;
   surname: string;
   email: string;

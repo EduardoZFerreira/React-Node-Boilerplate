@@ -9,3 +9,5 @@ class CreateUserResponseDTO implements IResponse {
     this.id = id;
   }
 }
+
+export { CreateUserResponseDTO };

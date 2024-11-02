@@ -3,11 +3,13 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { publicRoutes } from "./routes/publicRoutes";
 import { corsOptions } from "./config/corsOptions";
+import bodyParser from "body-parser";
 
 dotenv.config();
 
 const app = express();
 
+app.use(bodyParser.json());
 app.use(cors(corsOptions));
 app.use(publicRoutes);
 
