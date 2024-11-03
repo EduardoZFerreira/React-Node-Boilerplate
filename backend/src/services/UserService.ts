@@ -1,9 +1,14 @@
-import { genSalt, hash } from "bcrypt";
+import { compare, genSalt, hash } from "bcrypt";
 import { ICreateUserRequest } from "../interfaces/requests/ICreateUserRequest";
 import prismaClient from "../prisma/prismaClient";
 import { userValidator } from "../validators/UserValidator";
 import { CreateUserResponseDTO } from "../DTOs/CreateUserResponseDTO";
 import { Role } from "../config/roles";
+import Jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+import { AuthenticationResponseDTO } from "../DTOs/AuthenticationResponseDTO";
+
+dotenv.config();
 
 class UserService {
   async getEmailInUse(email: string) {
@@ -78,6 +83,68 @@ class UserService {
     } catch (error: any) {
       throw new Error(error.message);
     }
+  }
+
+  async login(
+    email: string,
+    password: string
+  ): Promise<[AuthenticationResponseDTO, string]> {
+    const existingUser = await prismaClient.user.findFirst({
+      where: { email: email },
+    });
+
+    if (!existingUser)
+      return [new AuthenticationResponseDTO(true, ["User not found"]), ""];
+
+    const comparePassword = await compare(password, existingUser.password);
+
+    if (!comparePassword)
+      return [new AuthenticationResponseDTO(true, ["Incorrect password"]), ""];
+
+    const accessToken = Jwt.sign(
+      { email: existingUser.email },
+      process.env.API_TOKEN_SECRET as string,
+      { expiresIn: "10m" }
+    );
+
+    const refreshToken = Jwt.sign(
+      { email: existingUser.email },
+      process.env.REFRESH_TOKEN_SECRET as string,
+      { expiresIn: "1d" }
+    );
+
+    try {
+      await prismaClient.user.update({
+        where: { id: existingUser.id },
+        data: {
+          refreshToken: refreshToken,
+        },
+      });
+
+      const response = new AuthenticationResponseDTO(
+        false,
+        [],
+        accessToken,
+        existingUser.id
+      );
+
+      return [response, refreshToken];
+    } catch (error: any) {
+      return [new AuthenticationResponseDTO(true, [error.message]), ""];
+    }
+  }
+
+  async logout(cookie: string): Promise<void> {
+    const tokenOwner = await prismaClient.user.findFirst({
+      where: { refreshToken: cookie },
+    });
+
+    if (!tokenOwner) return;
+
+    await prismaClient.user.update({
+      where: { id: tokenOwner.id },
+      data: { refreshToken: null },
+    });
   }
 }
 

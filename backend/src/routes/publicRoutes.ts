@@ -10,3 +10,11 @@ publicRoutes.route("/healthcheck").get((req: Request, res: Response) => {
 publicRoutes.route("/user").post(async (req: Request, res: Response) => {
   await new UserController().createUser(req, res);
 });
+
+publicRoutes.route("/login").post(async (req: Request, res: Response) => {
+  await new UserController().login(req, res);
+});
+
+publicRoutes.route("/logout").get(async (req: Request, res: Response) => {
+  await new UserController().logout(req, res);
+});

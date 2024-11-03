@@ -14,13 +14,14 @@ datasource db {
 }
 
 model User {
-  id        Int        @id @default(autoincrement())
-  name      String
-  surname   String
-  email     String
-  password  String
-  createdAt DateTime   @default(now())
-  UserRole  UserRole[]
+  id           Int        @id @default(autoincrement())
+  name         String
+  surname      String
+  email        String
+  password     String
+  createdAt    DateTime   @default(now())
+  UserRole     UserRole[]
+  refreshToken String?
 
   @@map("users")
 }
