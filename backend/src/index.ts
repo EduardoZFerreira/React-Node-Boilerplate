@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { publicRoutes } from "./routes/publicRoutes";
 import { corsOptions } from "./config/corsOptions";
 import bodyParser from "body-parser";
+import { RoleService } from "./services/RoleService";
 
 dotenv.config();
 
@@ -14,5 +15,6 @@ app.use(cors(corsOptions));
 app.use(publicRoutes);
 
 app.listen(Number(process.env.API_PORT) ?? 8081, () => {
+  RoleService.verifyDBRoles();
   console.log("server online");
 });
