@@ -5,6 +5,7 @@ import { publicRoutes } from "./routes/publicRoutes";
 import { corsOptions } from "./config/corsOptions";
 import bodyParser from "body-parser";
 import { RoleService } from "./services/RoleService";
+import { RoleService } from "./services/RoleService";
 
 dotenv.config();
 
