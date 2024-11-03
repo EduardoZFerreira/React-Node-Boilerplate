@@ -6,11 +6,13 @@ import { corsOptions } from "./config/corsOptions";
 import bodyParser from "body-parser";
 import { RoleService } from "./services/RoleService";
 import cookieParser from "cookie-parser";
+import { credentials } from "./middleware/credentials";
 
 dotenv.config();
 
 const app = express();
 
+app.use(credentials);
 app.use(bodyParser.json());
 app.use(cors(corsOptions));
 app.use(cookieParser());
