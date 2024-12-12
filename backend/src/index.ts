@@ -7,6 +7,8 @@ import bodyParser from "body-parser";
 import { RoleService } from "./services/RoleService";
 import cookieParser from "cookie-parser";
 import { credentials } from "./middleware/credentials";
+import { authenticateToken } from "./middleware/authentication";
+import { privateRoutes } from "./routes/privateRoutes";
 
 dotenv.config();
 
@@ -17,6 +19,9 @@ app.use(bodyParser.json());
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(publicRoutes);
+
+app.use(authenticateToken);
+app.use(privateRoutes);
 
 app.listen(Number(process.env.API_PORT) ?? 8081, () => {
   RoleService.verifyDBRoles();
