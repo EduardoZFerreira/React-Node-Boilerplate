@@ -1,47 +1,28 @@
-import { Request, Response } from "express";
-import { ICreateUserRequest } from "../interfaces/requests/ICreateUserRequest";
-import { UserService } from "../services/UserService";
+import { Request, Response } from 'express';
+import { UserService } from '../services/UserService';
+import { SessionService } from '../services/SessionService';
 
 class UserController {
-  async createUser(request: Request, response: Response) {
-    const userData = request.body as ICreateUserRequest;
-    const responseDto = await new UserService().createUser(userData);
-
-    const status = responseDto.hasError ? 500 : 201;
-
-    response.status(status).json(responseDto);
+  async createUser(req: Request, res: Response): Promise<void> {
+    const result = await new UserService().createUser(req.body);
+    res.status(result.hasError ? 400 : 201).json(result);
   }
 
-  async login(request: Request, response: Response) {
-    const { email, password } = request.body;
-    const loginData = await new UserService().login(email, password);
-
-    const status = loginData[0].hasError ? 401 : 200;
-
-    if (loginData[1]) {
-      response.cookie("jwt", loginData[1], {
-        httpOnly: true,
-        sameSite: "none",
-        secure: true,
-        maxAge: 24 * 60 * 60 * 1000,
-      });
-    }
-
-    response.status(status).json(loginData[0]);
+  async login(req: Request, res: Response): Promise<void> {
+    const user = await new UserService().login(req.body);
+    SessionService.populate(req, { ...user, tenantId: user.tenantId ?? undefined });
+    res.status(200).json({ hasError: false, errors: [], userId: user.id });
   }
 
-  async logout(request: Request, response: Response) {
-    const cookie = request.cookies;
+  async logout(req: Request, res: Response): Promise<void> {
+    await SessionService.destroy(req);
+    res.clearCookie('sid');
+    res.sendStatus(204);
+  }
 
-    if (cookie?.jwt) await new UserService().logout(cookie.jwt);
-
-    response.clearCookie("jwt", {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-    });
-
-    response.sendStatus(204);
+  async me(req: Request, res: Response): Promise<void> {
+    const user = SessionService.getUser(req);
+    res.status(200).json({ hasError: false, errors: [], user });
   }
 }
 

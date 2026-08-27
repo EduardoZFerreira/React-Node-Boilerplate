@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Skill(watch:watch)",
+      "Skill(watch:watch:*)",
+      "WebFetch(domain:gist.github.com)",
+      "WebSearch",
+      "WebFetch(domain:cheatsheetseries.owasp.org)",
+      "WebFetch(domain:clerk.com)",
+      "WebFetch(domain:stytch.com)",
+      "Bash(npm install *)",
+      "Bash(npm uninstall *)",
+      "Bash(npm audit *)",
+      "Bash(npx prisma *)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}

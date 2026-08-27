@@ -1,150 +1,95 @@
-import { compare, genSalt, hash } from "bcrypt";
-import { ICreateUserRequest } from "../interfaces/requests/ICreateUserRequest";
-import prismaClient from "../prisma/prismaClient";
-import { userValidator } from "../validators/UserValidator";
-import { CreateUserResponseDTO } from "../DTOs/CreateUserResponseDTO";
-import { Role } from "../config/roles";
-import Jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-import { AuthenticationResponseDTO } from "../DTOs/AuthenticationResponseDTO";
-
-dotenv.config();
+import { compare, genSalt, hash } from 'bcrypt';
+import prismaClient from '../prisma/prismaClient';
+import { CreateUserResponseDTO } from '../DTOs/CreateUserResponseDTO';
+import { Role } from '../config/roles';
+import { AppError } from '../errors/AppError';
+import { CreateUserInput, LoginInput } from '../schemas/userSchema';
 
 class UserService {
-  async getEmailInUse(email: string) {
+  async getEmailInUse(email: string): Promise<boolean> {
     const user = await prismaClient.user.findFirst({
-      where: {
-        email: email,
-      },
-      select: {
-        id: true,
-      },
+      where: { email },
+      select: { id: true },
     });
-
     return Boolean(user);
   }
 
-  async createUser(
-    userData: ICreateUserRequest
-  ): Promise<CreateUserResponseDTO> {
-    const validation = userValidator(userData);
-
-    if (!validation.valid)
-      return new CreateUserResponseDTO(true, validation.errors);
-
+  async createUser(userData: CreateUserInput): Promise<CreateUserResponseDTO> {
     const userExists = await this.getEmailInUse(userData.email);
-
-    if (userExists)
-      return new CreateUserResponseDTO(true, ["E-mail already in use"]);
+    if (userExists) return new CreateUserResponseDTO(true, ['E-mail already in use']);
 
     const salt = await genSalt();
     const passwordHash = await hash(userData.password, salt);
 
-    try {
-      const newUser = await prismaClient.user.create({
-        data: {
-          name: userData.name,
-          surname: userData.surname,
-          email: userData.email,
-          password: passwordHash,
-        },
-      });
-
-      await this.addUserRole(newUser.id, Role.USER);
-
-      return new CreateUserResponseDTO(false, [], newUser.id);
-    } catch (error: any) {
-      return new CreateUserResponseDTO(true, [error.message]);
-    }
-  }
-
-  async addUserRole(userId: number, role: Role) {
-    const dbRole = await prismaClient.role.findFirst({
-      where: {
-        title: role,
+    const newUser = await prismaClient.user.create({
+      data: {
+        name: userData.name,
+        surname: userData.surname,
+        email: userData.email,
+        password: passwordHash,
+        roles: [Role.USER],
       },
     });
 
-    if (!dbRole) throw new Error("Unknown role");
+    return new CreateUserResponseDTO(false, [], newUser.id);
+  }
 
-    const user = await prismaClient.user.findFirst({
-      where: { id: userId },
-    });
+  async addUserRole(userId: string, role: Role): Promise<void> {
+    const user = await prismaClient.user.findFirst({ where: { id: userId } });
+    if (!user) throw new AppError(404, 'User does not exist');
 
-    if (!user) throw new Error("User does not exist");
-
-    try {
-      await prismaClient.userRole.create({
-        data: {
-          userId: userId,
-          roleId: dbRole.id,
-        },
+    if (!user.roles.includes(role)) {
+      await prismaClient.user.update({
+        where: { id: userId },
+        data: { roles: { push: role } },
       });
-    } catch (error: any) {
-      throw new Error(error.message);
     }
+  }
+
+  async removeUserRole(userId: string, role: Role): Promise<void> {
+    const user = await prismaClient.user.findFirst({ where: { id: userId } });
+    if (!user) throw new AppError(404, 'User does not exist');
+
+    await prismaClient.user.update({
+      where: { id: userId },
+      data: { roles: user.roles.filter((r) => r !== role) },
+    });
   }
 
   async login(
-    email: string,
-    password: string
-  ): Promise<[AuthenticationResponseDTO, string]> {
-    const existingUser = await prismaClient.user.findFirst({
-      where: { email: email },
+    credentials: LoginInput,
+  ): Promise<{ id: string; email: string; roles: string[]; tenantId: string | null }> {
+    const user = await prismaClient.user.findFirst({
+      where: { email: credentials.email },
     });
 
-    if (!existingUser)
-      return [new AuthenticationResponseDTO(true, ["User not found"]), ""];
+    if (!user) throw new AppError(401, 'Invalid credentials');
 
-    const comparePassword = await compare(password, existingUser.password);
+    const passwordMatch = await compare(credentials.password, user.password);
+    if (!passwordMatch) throw new AppError(401, 'Invalid credentials');
 
-    if (!comparePassword)
-      return [new AuthenticationResponseDTO(true, ["Incorrect password"]), ""];
-
-    const accessToken = Jwt.sign(
-      { email: existingUser.email },
-      process.env.API_TOKEN_SECRET as string,
-      { expiresIn: "10m" }
-    );
-
-    const refreshToken = Jwt.sign(
-      { email: existingUser.email },
-      process.env.REFRESH_TOKEN_SECRET as string,
-      { expiresIn: "1d" }
-    );
-
-    try {
-      await prismaClient.user.update({
-        where: { id: existingUser.id },
-        data: {
-          refreshToken: refreshToken,
-        },
-      });
-
-      const response = new AuthenticationResponseDTO(
-        false,
-        [],
-        accessToken,
-        existingUser.id
-      );
-
-      return [response, refreshToken];
-    } catch (error: any) {
-      return [new AuthenticationResponseDTO(true, [error.message]), ""];
-    }
+    return { id: user.id, email: user.email, roles: user.roles, tenantId: user.tenantId };
   }
 
-  async logout(cookie: string): Promise<void> {
-    const tokenOwner = await prismaClient.user.findFirst({
-      where: { refreshToken: cookie },
+  async createUserInTenant(data: CreateUserInput, tenantId: string): Promise<CreateUserResponseDTO> {
+    const userExists = await this.getEmailInUse(data.email);
+    if (userExists) return new CreateUserResponseDTO(true, ['E-mail already in use']);
+
+    const salt = await genSalt();
+    const passwordHash = await hash(data.password, salt);
+
+    const newUser = await prismaClient.user.create({
+      data: {
+        name: data.name,
+        surname: data.surname,
+        email: data.email,
+        password: passwordHash,
+        roles: [Role.USER],
+        tenantId,
+      },
     });
 
-    if (!tokenOwner) return;
-
-    await prismaClient.user.update({
-      where: { id: tokenOwner.id },
-      data: { refreshToken: null },
-    });
+    return new CreateUserResponseDTO(false, [], newUser.id);
   }
 }
 
