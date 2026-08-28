@@ -1,0 +1,54 @@
+{
+  "users": {
+    "pageTitle": "Usuários",
+    "columns": {
+      "name": "Nome",
+      "email": "E-mail",
+      "roles": "Roles",
+      "actions": "Ações"
+    },
+    "detail": {
+      "rolesTitle": "Roles",
+      "selectRole": "Selecione uma role",
+      "addRole": "Adicionar role",
+      "removeRole": "Remover {{role}}",
+      "tenantTitle": "Tenant",
+      "noTenant": "Nenhum tenant associado",
+      "selectTenant": "Selecione um tenant",
+      "assignTenant": "Associar tenant",
+      "backToList": "Voltar para usuários"
+    }
+  },
+  "tenants": {
+    "pageTitle": "Tenants",
+    "createButton": "Novo tenant",
+    "columns": {
+      "name": "Nome",
+      "slug": "Slug",
+      "plan": "Plano",
+      "status": "Status",
+      "actions": "Ações"
+    },
+    "status": {
+      "active": "Ativo",
+      "inactive": "Inativo"
+    },
+    "form": {
+      "createTitle": "Novo tenant",
+      "editTitle": "Editar tenant",
+      "nameLabel": "Nome",
+      "slugLabel": "Slug",
+      "slugImmutable": "O slug não pode ser alterado depois de criado.",
+      "planLabel": "Plano",
+      "activeLabel": "Ativo",
+      "submitCreate": "Criar tenant",
+      "submitEdit": "Salvar alterações",
+      "cancel": "Cancelar",
+      "errorPrefix": "Não foi possível salvar o tenant"
+    },
+    "validation": {
+      "nameRequired": "O nome é obrigatório.",
+      "invalidSlug": "O slug deve conter apenas letras minúsculas, números e hífens (2 a 50 caracteres)."
+    }
+  }
+}

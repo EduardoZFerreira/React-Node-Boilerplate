@@ -1,0 +1,35 @@
+{
+  "hello": "Olá! O frontend está conectado ao i18n.",
+  "appName": "Boilerplate",
+  "language": "Idioma",
+  "loading": "Carregando...",
+  "actions": {
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "create": "Criar",
+    "confirm": "Confirmar",
+    "logout": "Sair"
+  },
+  "pagination": {
+    "page": "Página {{page}} de {{pages}}",
+    "previous": "Anterior",
+    "next": "Próxima"
+  },
+  "nav": {
+    "items": "Itens",
+    "createTenantUser": "Adicionar usuário ao tenant",
+    "tenantUsers": "Usuários do tenant",
+    "adminUsers": "Usuários",
+    "adminTenants": "Tenants"
+  },
+  "backToApp": "Voltar para o app",
+  "backHome": "Voltar para o início",
+  "errors": {
+    "generic": "Algo deu errado. Tente novamente.",
+    "notAuthenticated": "Você precisa entrar para continuar.",
+    "forbidden": "Você não tem permissão para acessar esta página.",
+    "notFound": "Página não encontrada."
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "pageTitle": "Items",
+  "createButton": "New item",
+  "columns": {
+    "title": "Title",
+    "description": "Description",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "empty": "No items yet.",
+  "deleteConfirmTitle": "Delete item?",
+  "deleteConfirmDescription": "This action cannot be undone.",
+  "form": {
+    "createTitle": "New item",
+    "editTitle": "Edit item",
+    "titleLabel": "Title",
+    "descriptionLabel": "Description",
+    "activeLabel": "Active",
+    "submitCreate": "Create item",
+    "submitEdit": "Save changes",
+    "cancel": "Cancel",
+    "validation": {
+      "titleRequired": "Title is required."
+    },
+    "errorPrefix": "Couldn't save the item"
+  }
+}

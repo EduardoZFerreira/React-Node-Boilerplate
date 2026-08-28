@@ -1,0 +1,24 @@
+{
+  "hero": {
+    "eyebrow": "Boilerplate SaaS",
+    "title": "Construa seu produto, não a sua fundação",
+    "subtitle": "Autenticação, sessões, roles, API keys e multi-tenancy — resolvidos uma vez, para você focar no que realmente diferencia o seu produto.",
+    "primaryCta": "Começar agora",
+    "secondaryCta": "Acessar"
+  },
+  "sections": [
+    {
+      "title": "Lorem ipsum dolor sit amet",
+      "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris."
+    },
+    {
+      "title": "Consectetur adipiscing elit",
+      "body": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+    },
+    {
+      "title": "Sed do eiusmod tempor",
+      "body": "Curabitur pretium tincidunt lacus, ut interdum tellus elit sed risus. Maecenas eget condimentum velit, sit amet feugiat lectus. Class aptent taciti sociosqu ad litora torquent per conubia nostra."
+    }
+  ],
+  "footer": "Construído sobre um boilerplate Node + React security-first."
+}

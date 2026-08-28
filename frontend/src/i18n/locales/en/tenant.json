@@ -1,0 +1,30 @@
+{
+  "createUser": {
+    "title": "Add user to tenant",
+    "nameLabel": "First name",
+    "surnameLabel": "Last name",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "tenantLabel": "Tenant",
+    "selectTenant": "Select a tenant",
+    "submit": "Add user",
+    "success": "User created successfully.",
+    "errorPrefix": "Couldn't create the user",
+    "validation": {
+      "required": "Please fill in all fields.",
+      "invalidPassword": "Password must be 8-16 characters and include an uppercase letter, a lowercase letter, a number and a special character, with no spaces.",
+      "tenantRequired": "Select a tenant."
+    }
+  },
+  "users": {
+    "pageTitle": "Tenant users",
+    "columns": {
+      "name": "Name",
+      "email": "Email",
+      "roles": "Roles"
+    },
+    "selectTenantPlaceholder": "Select a tenant",
+    "selectTenantPrompt": "Select a tenant to see its users.",
+    "empty": "No users in this tenant yet."
+  }
+}

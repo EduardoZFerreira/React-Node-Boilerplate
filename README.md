@@ -226,9 +226,10 @@ Header: `X-Tenant-ID: <slug>` (optional — auto-resolved from user's tenant if 
 | Method | Path | Description |
 |---|---|---|
 | `POST` | `/tenant/users` | Create a user pre-assigned to the manager's tenant |
+| `GET` | `/tenant/users` | List users in a tenant (paginated) |
 
-**TenantManager:** `tenantId` in the body is ignored — the user is always created in the manager's own tenant.
-**Admin:** Can pass `tenantId` in the body to create a user in any tenant.
+**TenantManager:** `tenantId` (body for `POST`, query for `GET`) is ignored — always the manager's own tenant.
+**Admin:** Can pass `tenantId` (body for `POST`, query param for `GET`) to target any tenant; falls back to their own tenant if omitted.
 
 ---
 

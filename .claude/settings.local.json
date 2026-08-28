@@ -13,7 +13,9 @@
       "Bash(npm uninstall *)",
       "Bash(npm audit *)",
       "Bash(npx prisma *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(npm -v)",
+      "Bash(npm view *)"
     ]
   }
 }

@@ -71,6 +71,29 @@ class UserService {
     return { id: user.id, email: user.email, roles: user.roles, tenantId: user.tenantId };
   }
 
+  async listUsersInTenant(tenantId: string, page: number, limit: number) {
+    const [users, total] = await Promise.all([
+      prismaClient.user.findMany({
+        where: { tenantId },
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          name: true,
+          surname: true,
+          email: true,
+          roles: true,
+          tenantId: true,
+          createdAt: true,
+        },
+      }),
+      prismaClient.user.count({ where: { tenantId } }),
+    ]);
+
+    return { users, total, page, pages: Math.ceil(total / limit) };
+  }
+
   async createUserInTenant(data: CreateUserInput, tenantId: string): Promise<CreateUserResponseDTO> {
     const userExists = await this.getEmailInUse(data.email);
     if (userExists) return new CreateUserResponseDTO(true, ['E-mail already in use']);
