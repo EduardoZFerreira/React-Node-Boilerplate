@@ -37,6 +37,7 @@ The boilerplate was designed to handle the parts of a SaaS that are identical ac
 | Security headers | Helmet | CSP, HSTS, X-Frame-Options, and more |
 | Rate limiting | express-rate-limit | Protects auth endpoints from brute force |
 | API docs | Swagger UI (dev only) | Available at `/docs` in development |
+| Local dev / containers | Docker Compose (backend + Mongo) | Run everything locally without an Atlas account — see [Alternative: Docker Compose](#alternative-docker-compose) |
 
 ---
 
@@ -269,7 +270,9 @@ Header: `X-Tenant-ID: <slug>` (optional — auto-resolved from user's tenant if 
 
 ```
 React-Node-Boilerplate/
+├── docker-compose.yml              # Local dev only: backend + a local MongoDB replica set
 ├── backend/
+│   ├── Dockerfile                 # Multi-stage: deps → dev/build → production
 │   ├── prisma/
 │   │   └── schema.prisma          # Data model (Tenant, User, Role, Item, Session, ApiKey)
 │   └── src/
@@ -327,7 +330,7 @@ React-Node-Boilerplate/
 │       └── types/
 │           ├── express.d.ts       # Augments Express.Request with authUser, tenant
 │           └── session.d.ts       # Augments express-session SessionData with tenantId, roles, etc.
-└── frontend/                      # (coming in Phase 3)
+└── frontend/                      # React + Vite SPA — Dockerfile + nginx.conf are optional, for self-hosting (see Deployment)
 ```
 
 ---
@@ -337,7 +340,7 @@ React-Node-Boilerplate/
 ### Prerequisites
 
 - Node.js 20+
-- A MongoDB Atlas cluster (free tier works fine)
+- A MongoDB Atlas cluster (free tier works fine) — **or** Docker, to run a local MongoDB instead (see [Alternative: Docker Compose](#alternative-docker-compose) below)
 
 ### 1. Fork and clone
 
@@ -422,6 +425,18 @@ On first boot, if no `Admin` user exists yet, the server automatically creates o
 
 This only ever runs once: as soon as any `Admin` exists, the bootstrap is a permanent no-op on every subsequent boot, even if `INITIAL_ADMIN_*` is still set.
 
+### Alternative: Docker Compose
+
+Don't want to set up an Atlas cluster just to try this out? `docker compose up` runs the backend against a local, throwaway MongoDB instead — no account, no cloud dependency:
+
+```bash
+docker compose up
+```
+
+This still reads `backend/.env` for everything except `DATABASE_URL` (which gets pointed at the local Mongo container automatically) — so you still need steps 1–2 above (a `.env` file must exist), but can skip creating an Atlas cluster and skip `npx prisma db push` (the collections get created on first write). Source changes hot-reload the same as `npm run dev`, since the container just runs that with your `backend/` folder mounted in.
+
+The frontend is **not** included in `docker-compose.yml` — run it natively (`npm run dev` inside `frontend/`) for Vite's instant hot reload; containerizing it would only slow that down. This setup is for local development only — see [Deployment](#deployment) for production.
+
 ---
 
 ## Email Delivery
@@ -439,6 +454,60 @@ The backend sends email through a single plain SMTP transport (Nodemailer, `back
 
 **If you also want push notifications, in-app messages, or SMS (not just email): [OneSignal](https://onesignal.com)**
 OneSignal is a broader customer-engagement platform (push + email + SMS + in-app) rather than a plain SMTP relay — its email product is driven through their API/dashboard, not SMTP credentials. Adopting it means replacing the Nodemailer call inside `EmailService` with their SDK instead of just editing `.env`. Worth it if you're already planning to use OneSignal for other notification channels in your product; overkill if all you need is transactional email.
+
+---
+
+## Deployment
+
+`docker-compose.yml` (above) is for local development only. In production, MongoDB stays on Atlas — nothing here teaches you to self-host Mongo, since the rest of this README already assumes Atlas throughout.
+
+### Environment checklist
+
+Before deploying, make sure production has its own values (never reuse dev secrets) for:
+
+- `NODE_ENV=production` — enables secure cookies (`secure: true`, `sameSite: strict`) and disables Swagger UI
+- `DATABASE_URL` — your production Atlas connection string
+- `SESSION_SECRET`, `JWT_SERVICE_SECRET` — fresh random secrets, not the ones from your `.env.example`
+- `ALLOWED_ORIGINS` — the real deployed frontend origin(s), space-separated (no wildcards — see [Philosophy](#philosophy))
+- `FRONTEND_URL` — used to build links in emails (e.g. the password-reset link)
+- `SMTP_*` — a real provider, not Ethereal/Mailtrap (see [Email Delivery](#email-delivery))
+- `INITIAL_ADMIN_EMAIL` / `INITIAL_ADMIN_PASSWORD` — set for the first deploy only; see [Create your first Admin user](#5-create-your-first-admin-user)
+
+### Backend
+
+**Option A — Deploy the Docker image.** Build the `production` target from `backend/Dockerfile` and run it on any container host (Fly.io, Railway, Render, AWS/GCP/Azure container services, a bare VM with Docker, etc.):
+
+```bash
+docker build --target production -t your-registry/boilerplate-backend ./backend
+docker run -p 8081:8081 --env-file backend/.env your-registry/boilerplate-backend
+```
+
+**Option B — Deploy without Docker**, on any platform that runs a Node app directly (Render, Railway, a VM, etc.) using the scripts already in `backend/package.json`:
+
+```bash
+npm ci
+npm run build   # tsc -> dist/
+npm start       # node dist/index.js
+```
+
+Either way, run `npx prisma db push` once against your production `DATABASE_URL` before the first deploy (there are no migration files — see [Push schema to MongoDB](#3-push-schema-to-mongodb)).
+
+### Frontend
+
+**Option A — Static hosting (recommended).** The build output (`npm run build` → `frontend/dist/`) is a plain static bundle — Vercel, Netlify, and Cloudflare Pages all deploy it directly. Set `VITE_API_URL` to your production backend URL as a build-time environment variable on whichever host you pick, and configure it for **SPA fallback** (all unmatched paths serve `index.html`) — React Router handles routes like `/app/items` client-side, so a direct hit on that URL must not 404. Most static hosts have a one-line config for this (e.g. a rewrite rule); check your host's docs.
+
+**Option B — Self-host with the provided Nginx image** (`frontend/Dockerfile`), already configured for SPA fallback:
+
+```bash
+docker build --build-arg VITE_API_URL=https://api.yourapp.com -t your-registry/boilerplate-frontend ./frontend
+docker run -p 8080:80 your-registry/boilerplate-frontend
+```
+
+`VITE_API_URL` is baked into the JS bundle at build time (Vite env vars aren't readable at runtime) — rebuild the image if it changes.
+
+### Cross-origin cookies in production
+
+Production cookies are `secure: true` + `sameSite: strict` (see [Authentication Architecture](#authentication-architecture)). `sameSite: strict` means the session cookie is only sent on same-site requests — if your frontend and backend end up on genuinely different sites (not just different subdomains of the same registrable domain), cross-site navigations won't carry the cookie. Put both under the same parent domain (e.g. `app.yourproduct.com` and `api.yourproduct.com`) to avoid surprises, and make sure `ALLOWED_ORIGINS` lists the frontend's exact deployed origin (scheme + host + port) — CORS rejects anything not on that list regardless of cookie settings.
 
 ---
 
@@ -498,9 +567,9 @@ enum Role {
 
 - [x] Phase 1 — Backend foundation (auth, sessions, JWT, security headers, logging, Swagger)
 - [x] Phase 2 — CRUD template, API Keys, multi-tenancy, role system
-- [ ] Phase 3 — Frontend foundation (React Router v7, Axios with session interceptors, Zustand auth store)
-- [ ] Phase 4 — Frontend pages (login, register, dashboard, admin panel, profile, API key management)
-- [ ] Phase 5 — Docker Compose, production deployment guide
+- [x] Phase 3 — Frontend foundation (React Router v7, Axios with session interceptors, Zustand auth store)
+- [x] Phase 4 — Frontend pages (login, register, dashboard, admin panel, profile, API key management)
+- [x] Phase 5 — Docker Compose, production deployment guide
 
 ---
 

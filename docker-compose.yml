@@ -1,0 +1,62 @@
+# Local development only — spins up the backend + a local MongoDB so you can
+# run this boilerplate without an Atlas account. The frontend is NOT included
+# here: run it natively with `npm run dev` inside frontend/ for instant Vite
+# HMR (containerizing it would only slow that down).
+#
+# Usage:
+#   docker compose up
+#   curl http://localhost:8081/healthcheck
+#
+# Your backend/.env is still used for everything except DATABASE_URL, which
+# is overridden below to point at the local Mongo container instead of Atlas.
+
+services:
+  mongodb:
+    image: mongo:7
+    # A single-node replica set — required for MongoDB transactions, which
+    # UserService.createUser uses for the auto-tenant-creation-on-signup flow.
+    # A plain standalone mongod would fail (silently, until you hit that code
+    # path) since transactions don't exist outside a replica set.
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      # Reports healthy once the replica set is initiated — and initiates it
+      # itself on the first check if it hasn't been yet, so no separate
+      # one-shot init container/service is needed.
+      test:
+        [
+          "CMD-SHELL",
+          "mongosh --quiet --eval \"try { rs.status().ok } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongodb:27017'}]}).ok }\"",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./backend
+      target: dev
+    ports:
+      # Assumes the default API_PORT=8081 from backend/.env — update both
+      # sides if you've changed it.
+      - "8081:8081"
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: "mongodb://mongodb:27017/boilerplate?replicaSet=rs0"
+    volumes:
+      - ./backend:/app
+      # Anonymous volume so the container's own node_modules (built for
+      # Linux — bcrypt has native bindings) isn't shadowed by the host's
+      # bind-mounted (possibly Windows/macOS) node_modules above.
+      - /app/node_modules
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+volumes:
+  mongo-data:
