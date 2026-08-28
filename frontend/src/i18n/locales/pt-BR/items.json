@@ -1,0 +1,31 @@
+{
+  "pageTitle": "Itens",
+  "createButton": "Novo item",
+  "columns": {
+    "title": "Título",
+    "description": "Descrição",
+    "status": "Status",
+    "actions": "Ações"
+  },
+  "status": {
+    "active": "Ativo",
+    "inactive": "Inativo"
+  },
+  "empty": "Nenhum item ainda.",
+  "deleteConfirmTitle": "Excluir item?",
+  "deleteConfirmDescription": "Essa ação não pode ser desfeita.",
+  "form": {
+    "createTitle": "Novo item",
+    "editTitle": "Editar item",
+    "titleLabel": "Título",
+    "descriptionLabel": "Descrição",
+    "activeLabel": "Ativo",
+    "submitCreate": "Criar item",
+    "submitEdit": "Salvar alterações",
+    "cancel": "Cancelar",
+    "validation": {
+      "titleRequired": "O título é obrigatório."
+    },
+    "errorPrefix": "Não foi possível salvar o item"
+  }
+}

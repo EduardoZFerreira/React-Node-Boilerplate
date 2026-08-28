@@ -1,0 +1,54 @@
+{
+  "users": {
+    "pageTitle": "Users",
+    "columns": {
+      "name": "Name",
+      "email": "Email",
+      "roles": "Roles",
+      "actions": "Actions"
+    },
+    "detail": {
+      "rolesTitle": "Roles",
+      "selectRole": "Select a role",
+      "addRole": "Add role",
+      "removeRole": "Remove {{role}}",
+      "tenantTitle": "Tenant",
+      "noTenant": "No tenant assigned",
+      "selectTenant": "Select a tenant",
+      "assignTenant": "Assign tenant",
+      "backToList": "Back to users"
+    }
+  },
+  "tenants": {
+    "pageTitle": "Tenants",
+    "createButton": "New tenant",
+    "columns": {
+      "name": "Name",
+      "slug": "Slug",
+      "plan": "Plan",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "form": {
+      "createTitle": "New tenant",
+      "editTitle": "Edit tenant",
+      "nameLabel": "Name",
+      "slugLabel": "Slug",
+      "slugImmutable": "Slug can't be changed after creation.",
+      "planLabel": "Plan",
+      "activeLabel": "Active",
+      "submitCreate": "Create tenant",
+      "submitEdit": "Save changes",
+      "cancel": "Cancel",
+      "errorPrefix": "Couldn't save the tenant"
+    },
+    "validation": {
+      "nameRequired": "Name is required.",
+      "invalidSlug": "Slug must be lowercase letters, numbers and hyphens only (2-50 characters)."
+    }
+  }
+}

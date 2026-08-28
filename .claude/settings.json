@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npm audit *)",
+      "Bash(cd \"d:\\\\Documentos\\\\Projetos\\\\Projetos Dev\\\\Node\\\\Node React Boilerplate\\\\React-Node-Boilerplate\\\\frontend\" && rm -f src/App.css)",
+      "Bash(npx tsc *)",
+      "Bash(curl -s http://localhost:5173/)",
+      "Bash(curl -s http://localhost:5173/src/main.tsx)",
+      "Bash(curl -s \"http://localhost:5173/src/index.css\")",
+      "Bash(curl -s \"http://localhost:5173/src/index.css?direct\")",
+      "Bash(cat /tmp/vite-dev.log 2>&1)",
+      "Read(//tmp/**)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill //PID 4456 //F)",
+      "Bash(cat /tmp/vite-dev2.log)",
+      "Bash(awk '{print $5}')",
+      "Bash(xargs -r -I{} taskkill //PID {} //F)",
+      "Bash(npm ls *)",
+      "Bash(npm view *)",
+      "Bash(npm init *)",
+      "Bash(npx playwright *)"
+    ],
+    "additionalDirectories": [
+      "d:\\Documentos\\Projetos\\Projetos Dev\\Node\\Node React Boilerplate\\React-Node-Boilerplate\\frontend\\src"
+    ]
+  }
+}

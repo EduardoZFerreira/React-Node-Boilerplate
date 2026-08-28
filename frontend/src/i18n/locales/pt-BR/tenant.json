@@ -1,0 +1,30 @@
+{
+  "createUser": {
+    "title": "Adicionar usuário ao tenant",
+    "nameLabel": "Nome",
+    "surnameLabel": "Sobrenome",
+    "emailLabel": "E-mail",
+    "passwordLabel": "Senha",
+    "tenantLabel": "Tenant",
+    "selectTenant": "Selecione um tenant",
+    "submit": "Adicionar usuário",
+    "success": "Usuário criado com sucesso.",
+    "errorPrefix": "Não foi possível criar o usuário",
+    "validation": {
+      "required": "Preencha todos os campos.",
+      "invalidPassword": "A senha deve ter de 8 a 16 caracteres e conter letra maiúscula, minúscula, número e caractere especial, sem espaços.",
+      "tenantRequired": "Selecione um tenant."
+    }
+  },
+  "users": {
+    "pageTitle": "Usuários do tenant",
+    "columns": {
+      "name": "Nome",
+      "email": "E-mail",
+      "roles": "Roles"
+    },
+    "selectTenantPlaceholder": "Selecione um tenant",
+    "selectTenantPrompt": "Selecione um tenant para ver seus usuários.",
+    "empty": "Nenhum usuário nesse tenant ainda."
+  }
+}

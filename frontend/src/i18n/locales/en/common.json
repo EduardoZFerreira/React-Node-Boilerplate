@@ -1,0 +1,35 @@
+{
+  "hello": "Hello! The frontend is connected to i18n.",
+  "appName": "Boilerplate",
+  "language": "Language",
+  "loading": "Loading...",
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "create": "Create",
+    "confirm": "Confirm",
+    "logout": "Log out"
+  },
+  "pagination": {
+    "page": "Page {{page}} of {{pages}}",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "nav": {
+    "items": "Items",
+    "createTenantUser": "Add tenant user",
+    "tenantUsers": "Tenant users",
+    "adminUsers": "Users",
+    "adminTenants": "Tenants"
+  },
+  "backToApp": "Back to app",
+  "backHome": "Back home",
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "notAuthenticated": "You need to sign in to continue.",
+    "forbidden": "You don't have permission to access this page.",
+    "notFound": "Page not found."
+  }
+}
