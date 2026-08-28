@@ -51,6 +51,12 @@ export function AppLayout() {
           </nav>
         </div>
         <div className="flex items-center gap-3">
+          <NavLink to="/app/account/profile" className={navLinkClasses}>
+            {t("nav.profile")}
+          </NavLink>
+          <NavLink to="/app/account/api-keys" className={navLinkClasses}>
+            {t("nav.apiKeys")}
+          </NavLink>
           <LanguageSwitcher />
           <span className="text-sm text-slate-600">{user?.email}</span>
           <button

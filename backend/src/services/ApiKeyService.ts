@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import prismaClient from '../prisma/prismaClient';
 import { AppError } from '../errors/AppError';
+import { Role } from '../config/roles';
 import { CreateApiKeyInput } from '../schemas/apiKeySchema';
 
 // SHA-256 is appropriate for API keys: they are already high-entropy random strings.
@@ -12,7 +13,14 @@ const generateRawKey = (): string =>
   `bk_${crypto.randomBytes(32).toString('hex')}`;
 
 class ApiKeyService {
-  async create(userId: string, data: CreateApiKeyInput) {
+  async create(userId: string, data: CreateApiKeyInput, requesterRoles: string[]) {
+    // The 'admin' scope lets a key bypass item-ownership checks and see inactive
+    // items (see ItemController) — only Admins may mint a key with that scope,
+    // otherwise any authenticated user could self-escalate via their own API key.
+    if (data.scopes.includes('admin') && !requesterRoles.includes(Role.ADMIN)) {
+      throw new AppError(403, 'Only Admins can create API keys with the admin scope');
+    }
+
     const rawKey = generateRawKey();
     const keyHash = hashKey(rawKey);
 

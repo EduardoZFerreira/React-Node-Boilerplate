@@ -22,7 +22,9 @@
     "createTenantUser": "Adicionar usuário ao tenant",
     "tenantUsers": "Usuários do tenant",
     "adminUsers": "Usuários",
-    "adminTenants": "Tenants"
+    "adminTenants": "Tenants",
+    "profile": "Perfil",
+    "apiKeys": "Chaves de API"
   },
   "backToApp": "Voltar para o app",
   "backHome": "Voltar para o início",

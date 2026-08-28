@@ -6,6 +6,8 @@ import { AdminTenantFormPage } from "../pages/admin/AdminTenantFormPage";
 import { AdminTenantsListPage } from "../pages/admin/AdminTenantsListPage";
 import { AdminUserDetailPage } from "../pages/admin/AdminUserDetailPage";
 import { AdminUsersListPage } from "../pages/admin/AdminUsersListPage";
+import { ApiKeysPage } from "../pages/account/ApiKeysPage";
+import { ProfilePage } from "../pages/account/ProfilePage";
 import { LoginPage } from "../pages/auth/LoginPage";
 import { RegisterPage } from "../pages/auth/RegisterPage";
 import { NotFoundPage } from "../pages/errors/NotFoundPage";
@@ -53,6 +55,9 @@ export function AppRoutes() {
         <Route path="items" element={<ItemsListPage />} />
         <Route path="items/new" element={<ItemFormPage />} />
         <Route path="items/:id/edit" element={<ItemFormPage />} />
+
+        <Route path="account/profile" element={<ProfilePage />} />
+        <Route path="account/api-keys" element={<ApiKeysPage />} />
 
         <Route
           path="tenant/users"

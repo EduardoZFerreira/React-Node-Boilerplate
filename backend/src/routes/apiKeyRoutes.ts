@@ -16,7 +16,7 @@ apiKeyRoutes.use(requireSession);
  *     summary: Create a new API key
  *     description: >
  *       The raw key is returned ONLY in this response — it is never stored and cannot be retrieved again.
- *       Store it securely immediately.
+ *       Store it securely immediately. The `admin` scope may only be requested by users with the Admin role.
  *     tags: [API Keys]
  *     security:
  *       - cookieAuth: []
@@ -60,6 +60,8 @@ apiKeyRoutes.use(requireSession);
  *                     createdAt: { type: string, format: date-time }
  *       401:
  *         description: Not authenticated
+ *       403:
+ *         description: Requested the 'admin' scope without the Admin role
  */
 apiKeyRoutes.post('/', validateBody(CreateApiKeySchema), async (req, res) => {
   await new ApiKeyController().create(req, res);

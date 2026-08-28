@@ -1,0 +1,52 @@
+{
+  "profile": {
+    "title": "Meu perfil",
+    "emailLabel": "E-mail",
+    "rolesLabel": "Roles",
+    "tenantLabel": "Tenant",
+    "noTenant": "Nenhum tenant associado",
+    "noRoles": "Nenhuma role associada"
+  },
+  "apiKeys": {
+    "title": "Chaves de API",
+    "createButton": "Nova chave",
+    "columns": {
+      "label": "Rótulo",
+      "scopes": "Escopos",
+      "expires": "Expira",
+      "status": "Status",
+      "actions": "Ações"
+    },
+    "status": {
+      "active": "Ativa",
+      "revoked": "Revogada",
+      "expired": "Expirada"
+    },
+    "neverExpires": "Nunca",
+    "empty": "Nenhuma chave de API ainda.",
+    "revokeButton": "Revogar",
+    "revokeConfirmTitle": "Revogar essa chave de API?",
+    "revokeConfirmDescription": "Qualquer cliente usando ela vai parar de funcionar imediatamente. Essa ação não pode ser desfeita.",
+    "form": {
+      "title": "Nova chave de API",
+      "labelLabel": "Rótulo",
+      "labelPlaceholder": "ex: pipeline de CI",
+      "scopesLabel": "Escopos",
+      "expiresLabel": "Expiração (opcional)",
+      "submit": "Criar chave",
+      "cancel": "Cancelar",
+      "errorPrefix": "Não foi possível criar a chave",
+      "validation": {
+        "labelRequired": "O rótulo é obrigatório.",
+        "scopesRequired": "Selecione ao menos um escopo."
+      }
+    },
+    "success": {
+      "title": "Chave criada",
+      "warning": "Copie essa chave agora — ela não será mostrada novamente.",
+      "copyButton": "Copiar",
+      "copied": "Copiado!",
+      "doneButton": "Concluir"
+    }
+  }
+}

@@ -22,7 +22,9 @@
     "createTenantUser": "Add tenant user",
     "tenantUsers": "Tenant users",
     "adminUsers": "Users",
-    "adminTenants": "Tenants"
+    "adminTenants": "Tenants",
+    "profile": "Profile",
+    "apiKeys": "API keys"
   },
   "backToApp": "Back to app",
   "backHome": "Back home",

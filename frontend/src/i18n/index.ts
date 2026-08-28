@@ -13,6 +13,8 @@ import adminEn from "./locales/en/admin.json";
 import adminPtBR from "./locales/pt-BR/admin.json";
 import tenantEn from "./locales/en/tenant.json";
 import tenantPtBR from "./locales/pt-BR/tenant.json";
+import accountEn from "./locales/en/account.json";
+import accountPtBR from "./locales/pt-BR/account.json";
 
 export const SUPPORTED_LANGUAGES = ["en", "pt-BR"] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
@@ -37,7 +39,15 @@ function detectBrowserLanguage(): SupportedLanguage {
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: { common: commonEn, auth: authEn, landing: landingEn, items: itemsEn, admin: adminEn, tenant: tenantEn },
+    en: {
+      common: commonEn,
+      auth: authEn,
+      landing: landingEn,
+      items: itemsEn,
+      admin: adminEn,
+      tenant: tenantEn,
+      account: accountEn,
+    },
     "pt-BR": {
       common: commonPtBR,
       auth: authPtBR,
@@ -45,12 +55,13 @@ i18n.use(initReactI18next).init({
       items: itemsPtBR,
       admin: adminPtBR,
       tenant: tenantPtBR,
+      account: accountPtBR,
     },
   },
   lng: getStoredLanguage() ?? detectBrowserLanguage(),
   fallbackLng: "en",
   defaultNS: "common",
-  ns: ["common", "auth", "landing", "items", "admin", "tenant"],
+  ns: ["common", "auth", "landing", "items", "admin", "tenant", "account"],
   interpolation: { escapeValue: false },
 });
 

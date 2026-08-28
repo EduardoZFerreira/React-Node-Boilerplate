@@ -1,0 +1,52 @@
+{
+  "profile": {
+    "title": "My profile",
+    "emailLabel": "Email",
+    "rolesLabel": "Roles",
+    "tenantLabel": "Tenant",
+    "noTenant": "No tenant assigned",
+    "noRoles": "No roles assigned"
+  },
+  "apiKeys": {
+    "title": "API keys",
+    "createButton": "New key",
+    "columns": {
+      "label": "Label",
+      "scopes": "Scopes",
+      "expires": "Expires",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "revoked": "Revoked",
+      "expired": "Expired"
+    },
+    "neverExpires": "Never",
+    "empty": "No API keys yet.",
+    "revokeButton": "Revoke",
+    "revokeConfirmTitle": "Revoke this API key?",
+    "revokeConfirmDescription": "Any client using it will stop working immediately. This cannot be undone.",
+    "form": {
+      "title": "New API key",
+      "labelLabel": "Label",
+      "labelPlaceholder": "e.g. CI pipeline",
+      "scopesLabel": "Scopes",
+      "expiresLabel": "Expiration (optional)",
+      "submit": "Create key",
+      "cancel": "Cancel",
+      "errorPrefix": "Couldn't create the key",
+      "validation": {
+        "labelRequired": "Label is required.",
+        "scopesRequired": "Select at least one scope."
+      }
+    },
+    "success": {
+      "title": "Key created",
+      "warning": "Copy this key now — it won't be shown again.",
+      "copyButton": "Copy",
+      "copied": "Copied!",
+      "doneButton": "Done"
+    }
+  }
+}

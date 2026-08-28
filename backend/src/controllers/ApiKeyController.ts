@@ -3,7 +3,7 @@ import { ApiKeyService } from '../services/ApiKeyService';
 
 class ApiKeyController {
   async create(req: Request, res: Response): Promise<void> {
-    const result = await new ApiKeyService().create(req.authUser!.id, req.body);
+    const result = await new ApiKeyService().create(req.authUser!.id, req.body, req.authUser!.roles);
     res.status(201).json({ hasError: false, errors: [], ...result });
   }
 
