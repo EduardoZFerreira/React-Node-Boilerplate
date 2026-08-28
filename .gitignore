@@ -5,6 +5,17 @@ dist
 dist-ssr
 *.local
 
+# Claude Code local tool state — permission allowlists and machine-specific
+# settings, not shared project config (and can end up recording local test
+# data, e.g. throwaway curl commands run during a session).
+.claude/settings.json
+.claude/settings.local.json
+
+# Throwaway scripts used to verify something during a session (e.g.
+# tmp-bootstrap-test.mts) — always meant to be deleted before a commit, this
+# is just a safety net in case one is left behind.
+tmp-*
+
 logs
 *.log
 npm-debug.log*

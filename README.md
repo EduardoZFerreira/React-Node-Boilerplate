@@ -169,6 +169,22 @@ The public-provider list is a starting point, not exhaustive — tune it for you
 | `GET /admin/tenants` | Admin manages tenant configuration |
 | `POST /tenant/users` | TenantManager creates users pre-assigned to their own tenant |
 
+### Building a Single-Tenant App?
+
+Not every product forked from this boilerplate is a multi-org B2B SaaS — a single-audience app (a book review site, a personal CRM, whatever) has no use for organizations at all. The backend needs **no changes** for this: multi-tenancy stays fully wired, `tenantId` just stays `null` for everyone, and `resolveTenant`/`requireRole(TenantManager)`/the `/admin/tenants` and `/tenant/*` routes simply go unused. There's no config flag for this on purpose — it's a decision you make once at fork time, not a runtime toggle to maintain.
+
+The only thing worth trimming is the tenant-management UI on the frontend, so your users never see screens for a concept your product doesn't have:
+
+- `frontend/src/pages/admin/AdminTenantsListPage.tsx`, `AdminTenantFormPage.tsx`
+- `frontend/src/pages/tenant/` (`TenantCreateUserPage.tsx`, `TenantUsersListPage.tsx`)
+- The matching routes in `frontend/src/routes/AppRoutes.tsx` (`admin/tenants*`, `tenant/users*`)
+- The matching nav links in `frontend/src/layouts/AppLayout.tsx` ("Tenants", "Tenant users", "Add tenant user")
+- The tenant-assignment section inside `frontend/src/pages/admin/AdminUserDetailPage.tsx`
+- `frontend/src/i18n/locales/*/tenant.json`, and the `tenants.*` keys inside `admin.json`
+- `frontend/src/api/{tenants,tenantUsers}.ts`, `frontend/src/queries/{tenants,tenantUsers}.ts`, `frontend/src/types/tenant.ts`
+
+**Also consider:** the [self-serve tenant-per-domain signup flow](#self-serve-tenant-creation-on-signup) will keep creating real `Tenant` documents on every signup from a new email domain even with the UI gone — harmless, but if you want a genuinely tenant-free database, simplify `UserService.createUser` (`backend/src/services/UserService.ts`) to drop that branch and always create plain `User`-role accounts.
+
 ---
 
 ## API Reference
@@ -405,6 +421,24 @@ On first boot, if no `Admin` user exists yet, the server automatically creates o
 4. If `INITIAL_ADMIN_EMAIL` happens to match an existing user (e.g. you registered yourself normally first), that account is promoted to `Admin` in place instead — its password is left untouched and `mustResetPassword` is not set.
 
 This only ever runs once: as soon as any `Admin` exists, the bootstrap is a permanent no-op on every subsequent boot, even if `INITIAL_ADMIN_*` is still set.
+
+---
+
+## Email Delivery
+
+The backend sends email through a single plain SMTP transport (Nodemailer, `backend/src/config/mailer.ts`) — used today by `EmailService.sendPasswordResetEmail` for the forgot-password flow. There's no vendor SDK baked in, so any provider that hands you SMTP credentials works with **zero code changes** — just fill in `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASSWORD`/`SMTP_FROM` in `.env`.
+
+**Drop-in via SMTP (recommended, no code changes):**
+
+| Provider | Why you'd pick it |
+|---|---|
+| [Resend](https://resend.com) | Best default for a fresh project — generous free tier, painless domain verification, an SMTP relay alongside its API |
+| [Amazon SES](https://aws.amazon.com/ses/) | Cheapest at real scale; starts in a sandbox restricted to verified recipients until you request production access |
+| [Postmark](https://postmarkapp.com), [Mailgun](https://www.mailgun.com), [SendGrid](https://sendgrid.com) | Mature, all SMTP-capable, largely interchangeable — pick whichever your team already has a relationship with |
+| [Mailtrap](https://mailtrap.io) / [Ethereal](https://ethereal.email) | Not for production — a fake inbox for local dev, so test emails never risk reaching a real address |
+
+**If you also want push notifications, in-app messages, or SMS (not just email): [OneSignal](https://onesignal.com)**
+OneSignal is a broader customer-engagement platform (push + email + SMS + in-app) rather than a plain SMTP relay — its email product is driven through their API/dashboard, not SMTP credentials. Adopting it means replacing the Nodemailer call inside `EmailService` with their SDK instead of just editing `.env`. Worth it if you're already planning to use OneSignal for other notification channels in your product; overkill if all you need is transactional email.
 
 ---
 
