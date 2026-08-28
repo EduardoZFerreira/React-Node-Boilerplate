@@ -18,6 +18,7 @@ import { logger } from './config/logger';
 import { errorHandler } from './middleware/errorHandler';
 import { swaggerSpec } from './config/swagger';
 import { RoleService } from './services/RoleService';
+import { AdminBootstrapService } from './services/AdminBootstrapService';
 
 dotenv.config();
 
@@ -62,5 +63,6 @@ const port = Number(process.env.API_PORT) || 8081;
 
 app.listen(port, async () => {
   await RoleService.verifyDBRoles();
+  await AdminBootstrapService.ensureInitialAdmin();
   logger.info(`Server running on port ${port}`);
 });

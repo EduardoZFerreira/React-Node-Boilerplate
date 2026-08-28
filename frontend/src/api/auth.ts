@@ -44,3 +44,29 @@ export async function me(): Promise<AuthUser> {
 export async function logout(): Promise<void> {
   await apiClient.post("/logout");
 }
+
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export async function changePassword(input: ChangePasswordInput): Promise<void> {
+  await apiClient.post("/auth/change-password", input);
+}
+
+export interface ForgotPasswordInput {
+  email: string;
+}
+
+export async function forgotPassword(input: ForgotPasswordInput): Promise<void> {
+  await apiClient.post("/auth/forgot-password", input);
+}
+
+export interface ResetPasswordInput {
+  token: string;
+  newPassword: string;
+}
+
+export async function resetPassword(input: ResetPasswordInput): Promise<void> {
+  await apiClient.post("/auth/reset-password", input);
+}

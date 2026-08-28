@@ -8,8 +8,10 @@ import { AdminUserDetailPage } from "../pages/admin/AdminUserDetailPage";
 import { AdminUsersListPage } from "../pages/admin/AdminUsersListPage";
 import { ApiKeysPage } from "../pages/account/ApiKeysPage";
 import { ProfilePage } from "../pages/account/ProfilePage";
+import { ForgotPasswordPage } from "../pages/auth/ForgotPasswordPage";
 import { LoginPage } from "../pages/auth/LoginPage";
 import { RegisterPage } from "../pages/auth/RegisterPage";
+import { ResetPasswordPage } from "../pages/auth/ResetPasswordPage";
 import { NotFoundPage } from "../pages/errors/NotFoundPage";
 import { ItemFormPage } from "../pages/items/ItemFormPage";
 import { ItemsListPage } from "../pages/items/ItemsListPage";
@@ -41,6 +43,8 @@ export function AppRoutes() {
             </PublicOnlyRoute>
           }
         />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="reset-password" element={<ResetPasswordPage />} />
       </Route>
 
       <Route

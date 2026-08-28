@@ -6,6 +6,7 @@ declare module 'express-session' {
     email: string;
     roles: string[];
     tenantId?: string;
+    mustResetPassword?: boolean;
     absoluteExpiry: number;
   }
 }

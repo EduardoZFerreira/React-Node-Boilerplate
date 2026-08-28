@@ -11,6 +11,7 @@ import { ApiError } from "../../types/api";
 interface LocationState {
   from?: string;
   registered?: boolean;
+  passwordReset?: boolean;
 }
 
 export function LoginPage() {
@@ -27,6 +28,7 @@ export function LoginPage() {
   const state = location.state as LocationState | null;
   const redirectTo = state?.from ?? "/app";
   const justRegistered = Boolean(state?.registered);
+  const justResetPassword = Boolean(state?.passwordReset);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -59,6 +61,12 @@ export function LoginPage() {
         </p>
       ) : null}
 
+      {justResetPassword ? (
+        <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">
+          {t("login.passwordResetSuccess")}
+        </p>
+      ) : null}
+
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <FormField label={t("login.emailLabel")} htmlFor="email">
           <Input
@@ -80,6 +88,10 @@ export function LoginPage() {
             required
           />
         </FormField>
+
+        <Link to="/forgot-password" className="text-sm font-medium text-slate-600 hover:underline">
+          {t("login.forgotPasswordLink")}
+        </Link>
 
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
 

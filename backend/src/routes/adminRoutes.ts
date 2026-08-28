@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { AdminController } from '../controllers/AdminController';
 import { requireSession } from '../middleware/requireSession';
 import { requireRole } from '../middleware/requireRole';
+import { blockIfMustResetPassword } from '../middleware/blockIfMustResetPassword';
 import { validateBody, validateQuery } from '../middleware/validateBody';
 import { PaginationSchema } from '../schemas/itemSchema';
 import { CreateTenantSchema, UpdateTenantSchema } from '../schemas/tenantSchema';
@@ -10,7 +11,7 @@ import { Role } from '../config/roles';
 
 export const adminRoutes = Router();
 
-adminRoutes.use(requireSession, requireRole(Role.ADMIN));
+adminRoutes.use(requireSession, blockIfMustResetPassword, requireRole(Role.ADMIN));
 
 // --- Roles ---
 

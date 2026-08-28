@@ -6,4 +6,5 @@ export interface AuthUser {
   email: string;
   roles: Role[];
   tenantId?: string;
+  mustResetPassword?: boolean;
 }

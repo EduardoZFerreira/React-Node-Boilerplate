@@ -2,6 +2,9 @@ import { Request, Response, Router } from 'express';
 import { UserController } from '../controllers/UserController';
 import { JwtService } from '../services/JwtService';
 import { requireSession } from '../middleware/requireSession';
+import { blockIfMustResetPassword } from '../middleware/blockIfMustResetPassword';
+import { validateBody } from '../middleware/validateBody';
+import { ChangePasswordSchema } from '../schemas/authSchema';
 
 export const privateRoutes = Router();
 
@@ -50,6 +53,44 @@ privateRoutes.get('/me', async (req: Request, res: Response) => {
 
 /**
  * @swagger
+ * /auth/change-password:
+ *   post:
+ *     summary: Change the current user's password
+ *     description: >
+ *       Requires the current password. This is the only authenticated endpoint
+ *       that remains reachable while `mustResetPassword` is set (e.g. right
+ *       after logging in with a bootstrap-seeded Admin account).
+ *     tags: [Auth]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [currentPassword, newPassword]
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password changed
+ *       401:
+ *         description: Not authenticated, or currentPassword is incorrect
+ */
+privateRoutes.post(
+  '/auth/change-password',
+  validateBody(ChangePasswordSchema),
+  async (req: Request, res: Response) => {
+    await new UserController().changePassword(req, res);
+  },
+);
+
+/**
+ * @swagger
  * /auth/service-token:
  *   post:
  *     summary: Issue a short-lived JWT for a microservice call
@@ -92,7 +133,7 @@ privateRoutes.get('/me', async (req: Request, res: Response) => {
  *       401:
  *         description: Not authenticated
  */
-privateRoutes.post('/auth/service-token', (req: Request, res: Response) => {
+privateRoutes.post('/auth/service-token', blockIfMustResetPassword, (req: Request, res: Response) => {
   const { audience, scope } = req.body as { audience: string; scope: string };
   const token = JwtService.issueServiceToken(req.authUser!, audience, scope);
   res.status(200).json({ hasError: false, errors: [], token });

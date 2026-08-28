@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express';
 import { UserService } from '../services/UserService';
 import { requireSession } from '../middleware/requireSession';
 import { requireRole } from '../middleware/requireRole';
+import { blockIfMustResetPassword } from '../middleware/blockIfMustResetPassword';
 import { validateBody, validateQuery } from '../middleware/validateBody';
 import { CreateUserInTenantSchema } from '../schemas/userSchema';
 import { PaginationSchema } from '../schemas/itemSchema';
@@ -10,7 +11,7 @@ import { AppError } from '../errors/AppError';
 
 export const tenantRoutes = Router();
 
-tenantRoutes.use(requireSession);
+tenantRoutes.use(requireSession, blockIfMustResetPassword);
 
 /**
  * @swagger

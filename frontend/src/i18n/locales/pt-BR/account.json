@@ -5,7 +5,8 @@
     "rolesLabel": "Roles",
     "tenantLabel": "Tenant",
     "noTenant": "Nenhum tenant associado",
-    "noRoles": "Nenhuma role associada"
+    "noRoles": "Nenhuma role associada",
+    "changePasswordTitle": "Alterar senha"
   },
   "apiKeys": {
     "title": "Chaves de API",

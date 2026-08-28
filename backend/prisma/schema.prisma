@@ -11,12 +11,21 @@ model Tenant {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
   slug      String   @unique
+  // Set when the tenant was auto-created from a registrant's email domain (or
+  // manually tagged by an Admin) — used to route later signups from the same
+  // domain to "contact your manager" instead of creating a duplicate org.
+  // NOT @unique: MongoDB unique indexes don't ignore nulls/missing fields the
+  // way Postgres sparse-unique does, and most tenants have no domain at all —
+  // race protection for the self-serve signup path instead comes from `slug`
+  // (always unique, always derived deterministically from the domain there).
+  domain    String?
   plan      String   @default("free")
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   users     User[]
   items     Item[]
 
+  @@index([domain])
   @@map("tenants")
 }
 
@@ -35,6 +44,15 @@ model User {
   ApiKey    ApiKey[]
   Item      Item[]
 
+  // Forces a password change before anything else — set on bootstrap-seeded
+  // Admins (see AdminBootstrapService) since the dev supplies the initial
+  // password themselves via .env.
+  mustResetPassword      Boolean   @default(false)
+  // Hash of the "forgot password" token (never store the raw token) + its expiry.
+  resetPasswordTokenHash String?
+  resetPasswordExpiresAt DateTime?
+
+  @@index([resetPasswordTokenHash])
   @@map("users")
 }
 

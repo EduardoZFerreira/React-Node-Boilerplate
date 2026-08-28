@@ -24,6 +24,22 @@ class UserController {
     const user = SessionService.getUser(req);
     res.status(200).json({ hasError: false, errors: [], user });
   }
+
+  async changePassword(req: Request, res: Response): Promise<void> {
+    await new UserService().changePassword(req.authUser!.id, req.body.currentPassword, req.body.newPassword);
+    req.session.mustResetPassword = false;
+    res.status(200).json({ hasError: false, errors: [] });
+  }
+
+  async forgotPassword(req: Request, res: Response): Promise<void> {
+    await new UserService().requestPasswordReset(req.body.email);
+    res.status(200).json({ hasError: false, errors: [] });
+  }
+
+  async resetPassword(req: Request, res: Response): Promise<void> {
+    await new UserService().resetPassword(req.body.token, req.body.newPassword);
+    res.status(200).json({ hasError: false, errors: [] });
+  }
 }
 
 export { UserController };

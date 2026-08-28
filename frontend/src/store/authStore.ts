@@ -14,6 +14,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   clear: () => void;
+  clearMustResetPassword: () => void;
 }
 
 // NOTE: this store mirrors the backend's session for UI convenience (nav
@@ -58,6 +59,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     queryClient.clear();
     set({ user: null, status: "anonymous" });
   },
+
+  // Lets the forced-reset gate lift immediately after a successful
+  // change-password, without needing a fresh /me round trip or re-login.
+  clearMustResetPassword: () =>
+    set((state) => (state.user ? { user: { ...state.user, mustResetPassword: false } } : {})),
 }));
 
 setUnauthorizedHandler(() => {

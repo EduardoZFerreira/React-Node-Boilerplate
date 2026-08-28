@@ -1,13 +1,14 @@
 import { Router } from 'express';
 import { ApiKeyController } from '../controllers/ApiKeyController';
 import { requireSession } from '../middleware/requireSession';
+import { blockIfMustResetPassword } from '../middleware/blockIfMustResetPassword';
 import { validateBody } from '../middleware/validateBody';
 import { CreateApiKeySchema } from '../schemas/apiKeySchema';
 
 export const apiKeyRoutes = Router();
 
 // Session-only: API keys cannot be used to manage API keys
-apiKeyRoutes.use(requireSession);
+apiKeyRoutes.use(requireSession, blockIfMustResetPassword);
 
 /**
  * @swagger

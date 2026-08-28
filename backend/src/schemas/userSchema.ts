@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const passwordRegex = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/;
 
-const passwordField = process.env.BYPASS_PASSWORD_STRENGTH_VALIDATION
+export const passwordField = process.env.BYPASS_PASSWORD_STRENGTH_VALIDATION
   ? z.string().min(1, 'Password is required')
   : z
       .string()

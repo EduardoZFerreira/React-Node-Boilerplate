@@ -87,6 +87,7 @@ External API clients   →  API keys (hashed with SHA-256, scope-limited)
 ```
 Tenant
   id, name, slug (unique), plan, isActive, createdAt
+  domain?: String      ← set when auto-created from a registrant's email domain (see Multi-Tenancy)
   → has many Users, Items
 
 User
@@ -94,6 +95,8 @@ User
   roles: String[]      ← embedded array, not a junction table
   tenantId?: ObjectId  ← optional tenant membership
   createdAt
+  mustResetPassword: Boolean               ← forces a password change before anything else works
+  resetPasswordTokenHash?, resetPasswordExpiresAt?  ← "forgot password" token (hashed, 1h TTL)
   → has many ApiKeys, Items
 
 Role
@@ -146,6 +149,16 @@ Every request resolves its tenant context through `resolveTenant` middleware in 
 
 This means a TenantManager or regular user assigned to a tenant never needs to send a header — their tenant is resolved automatically.
 
+### Self-Serve Tenant Creation on Signup
+
+`POST /user` derives the registrant's email domain (the part after `@`, lowercased) and decides what to do with it:
+
+- **Domain not seen before, and not a shared public provider** (gmail.com, hotmail.com, etc. — see `backend/src/config/publicEmailDomains.ts`): a new `Tenant` is created automatically (`name`/`slug` derived from the domain), and the registrant becomes its **TenantManager**. This is the "first person from a company signs up and owns the workspace" flow.
+- **Domain already has a tenant** (auto-created earlier, or manually tagged by an Admin via the optional `domain` field on `POST /admin/tenants`): registration is rejected with a message to contact the organization's manager instead — `POST /tenant/users` is how that manager actually adds them. This prevents the same company from ending up with two unrelated tenants.
+- **Public email provider, or no domain to match**: registration proceeds exactly as before — no tenant, plain `User` role.
+
+The public-provider list is a starting point, not exhaustive — tune it for your market when forking this boilerplate. Race protection for two people from the same new domain signing up at nearly the same time comes from the `Tenant.slug` unique constraint (always derived deterministically from the domain in this path), not from a `domain` uniqueness check — MongoDB unique indexes don't treat multiple missing/null values as distinct the way a Postgres partial-unique index would, and most tenants (public-domain signups, most Admin-created ones) have no `domain` at all.
+
 ### Tenant Scoping Behavior
 
 | Route | Behavior |
@@ -173,16 +186,19 @@ Errors return the same shape with `"hasError": true` and human-readable messages
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/healthcheck` | Server health check |
-| `POST` | `/user` | Register a new user |
+| `POST` | `/user` | Register a new user (see [Self-Serve Tenant Creation](#self-serve-tenant-creation-on-signup)) |
 | `POST` | `/login` | Authenticate and start a session |
 | `POST` | `/logout` | Destroy the current session |
+| `POST` | `/auth/forgot-password` | Request a password reset email — always responds 200, never reveals whether the email exists |
+| `POST` | `/auth/reset-password` | Complete a password reset using the token from that email (single-use, 1h expiry) |
 
 ### Private Routes (session required)
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/me` | Returns the current authenticated user |
+| `GET` | `/me` | Returns the current authenticated user (includes `mustResetPassword`) |
 | `POST` | `/auth/service-token` | Issue a short-lived JWT for a microservice call |
+| `POST` | `/auth/change-password` | Change your own password (`currentPassword` + `newPassword`) — the only endpoint besides `/me`/`/logout` reachable while `mustResetPassword` is set |
 
 ### Items (session OR API key)
 
@@ -244,6 +260,8 @@ React-Node-Boilerplate/
 │       ├── config/
 │       │   ├── corsOptions.ts     # CORS whitelist (never wildcard + credentials)
 │       │   ├── logger.ts          # Pino structured logger
+│       │   ├── mailer.ts          # Nodemailer transport from SMTP_* env vars
+│       │   ├── publicEmailDomains.ts  # Providers excluded from auto-tenant-creation
 │       │   ├── roles.ts           # Role enum (Admin, TenantManager, User)
 │       │   └── swagger.ts         # Swagger spec config
 │       ├── controllers/
@@ -254,6 +272,7 @@ React-Node-Boilerplate/
 │       ├── errors/
 │       │   └── AppError.ts        # Operational error class
 │       ├── middleware/
+│       │   ├── blockIfMustResetPassword.ts  # 403 on every route except /me, /logout, /auth/change-password
 │       │   ├── errorHandler.ts    # Centralized error handler
 │       │   ├── rateLimiter.ts     # Auth: 10 req/15min, API: 100 req/min
 │       │   ├── requireAuth.ts     # Session OR API key (scope-aware)
@@ -271,13 +290,16 @@ React-Node-Boilerplate/
 │       │   └── tenantRoutes.ts    # mounted at /tenant
 │       ├── schemas/
 │       │   ├── userSchema.ts      # CreateUserSchema, LoginSchema, CreateUserInTenantSchema
+│       │   ├── authSchema.ts      # ChangePasswordSchema, ForgotPasswordSchema, ResetPasswordSchema
 │       │   ├── itemSchema.ts      # CreateItemSchema, UpdateItemSchema, PaginationSchema
 │       │   ├── apiKeySchema.ts    # CreateApiKeySchema, AVAILABLE_SCOPES
-│       │   ├── tenantSchema.ts    # CreateTenantSchema, UpdateTenantSchema
+│       │   ├── tenantSchema.ts    # CreateTenantSchema, UpdateTenantSchema (both take an optional domain)
 │       │   └── adminSchema.ts     # AddRoleSchema, AssignTenantSchema
 │       ├── services/
-│       │   ├── UserService.ts     # createUser, login, addUserRole, createUserInTenant
+│       │   ├── UserService.ts     # createUser (+ auto-tenant), login, changePassword, requestPasswordReset, resetPassword
 │       │   ├── SessionService.ts  # populate, destroy, getUser
+│       │   ├── AdminBootstrapService.ts  # ensureInitialAdmin — seeds/promotes Admin from INITIAL_ADMIN_* on boot
+│       │   ├── EmailService.ts    # sendPasswordResetEmail
 │       │   ├── JwtService.ts      # issueServiceToken, verifyServiceToken
 │       │   ├── ItemService.ts     # list, getById, create, update, delete
 │       │   ├── ApiKeyService.ts   # create, listByUser, revoke, verify
@@ -337,6 +359,24 @@ NODE_ENV=development
 
 # Optional: skip password strength validation during development/testing
 # BYPASS_PASSWORD_STRENGTH_VALIDATION=true
+
+# Frontend URL — used to build links inside emails (e.g. password reset)
+FRONTEND_URL=http://localhost:5173
+
+# Bootstrap Admin — created automatically on first boot if no Admin user exists yet.
+# See "Create your first Admin user" below.
+INITIAL_ADMIN_EMAIL=admin@example.com
+INITIAL_ADMIN_PASSWORD=choose_a_real_password_here
+
+# SMTP — required for the "forgot password" email. Any provider works
+# (Gmail app password, Mailtrap/Ethereal for local dev, SES/SendGrid SMTP relay
+# in prod) — this is a plain Nodemailer transport config, no vendor SDK.
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_FROM=no-reply@yourapp.com
 ```
 
 ### 3. Push schema to MongoDB
@@ -357,17 +397,14 @@ The server starts on `http://localhost:8081`. Swagger UI is available at `http:/
 
 ### 5. Create your first Admin user
 
-1. Register a user via `POST /user`
-2. Connect to your MongoDB Atlas cluster and manually update that user's `roles` array to `["Admin"]`, or use the MongoDB shell:
+On first boot, if no `Admin` user exists yet, the server automatically creates one from `INITIAL_ADMIN_EMAIL` / `INITIAL_ADMIN_PASSWORD` in your `.env` — no manual database edit needed, and no password to fish out of a console log during deploy (you already know it, you set it).
 
-```javascript
-db.users.updateOne(
-  { email: "your@email.com" },
-  { $set: { roles: ["Admin"] } }
-)
-```
+1. Set `INITIAL_ADMIN_EMAIL` and `INITIAL_ADMIN_PASSWORD` in `.env` before starting the server for the first time.
+2. Start the server (`npm run dev`) — check the logs for `Created initial Admin user: <email>`.
+3. Log in with those credentials. The account is created with `mustResetPassword: true`, so the very first authenticated request other than `GET /me`, `POST /logout`, or `POST /auth/change-password` is rejected with `403 Password reset required` — call `POST /auth/change-password` to set your own password before doing anything else.
+4. If `INITIAL_ADMIN_EMAIL` happens to match an existing user (e.g. you registered yourself normally first), that account is promoted to `Admin` in place instead — its password is left untouched and `mustResetPassword` is not set.
 
-3. Log in — from this point all admin operations can be done through the API.
+This only ever runs once: as soon as any `Admin` exists, the bootstrap is a permanent no-op on every subsequent boot, even if `INITIAL_ADMIN_*` is still set.
 
 ---
 
@@ -459,6 +496,12 @@ enum Role {
 **Tenant resolution:**
 - `resolveTenant` middleware (applied to `itemRoutes`) resolves tenant context in this priority: `X-Tenant-ID` header → `authUser.tenantId` (from session) → `undefined`. It runs before auth on item routes, so it may run before `req.authUser` is set — the fallback to `authUser.tenantId` only happens if `authUser` exists.
 
+**Password reset / forced reset:**
+- `resetPasswordTokenHash` must never be stored or logged as the raw token — only its SHA-256 hash. The raw token exists only inside the email sent by `EmailService.sendPasswordResetEmail` and briefly in the request body of `POST /auth/reset-password`.
+- `mustResetPassword` lives in the session (`SessionService.populate`/`getUser`), not just the database — it's set at login time from the DB and cleared in-place on the current session object by `POST /auth/change-password`, so the gate lifts immediately without requiring re-login. **Do not** move this check to a per-request DB read; that was a deliberate tradeoff to keep session auth fast.
+- `blockIfMustResetPassword` must stay wired into every router that isn't explicitly exempt (`itemRoutes`, `apiKeyRoutes`, `adminRoutes`, `tenantRoutes`, and the `/auth/service-token` handler). The only reachable endpoints while the flag is set are `GET /me`, `POST /logout`, and `POST /auth/change-password` — adding a new authenticated router means adding this middleware to it too.
+- `Tenant.domain` is intentionally **not** `@unique` in `schema.prisma` — see [Self-Serve Tenant Creation on Signup](#self-serve-tenant-creation-on-signup) for why a Postgres-style sparse-unique assumption breaks on MongoDB here.
+
 ### Current Middleware Stack (in order for a request to `POST /items`)
 
 ```
@@ -479,6 +522,7 @@ itemRoutes (mounted at /items):
   email: string;
   roles: string[];       // snapshot at login — changes require re-login
   tenantId?: string;     // undefined if user has no tenant
+  mustResetPassword?: boolean; // cleared in-place by POST /auth/change-password, no re-login needed
   absoluteExpiry: number; // epoch ms — 7 days from login
 }
 ```

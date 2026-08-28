@@ -3,6 +3,7 @@ import { UserController } from '../controllers/UserController';
 import { validateBody } from '../middleware/validateBody';
 import { authLimiter } from '../middleware/rateLimiter';
 import { CreateUserSchema, LoginSchema } from '../schemas/userSchema';
+import { ForgotPasswordSchema, ResetPasswordSchema } from '../schemas/authSchema';
 
 export const publicRoutes = Router();
 
@@ -34,6 +35,12 @@ publicRoutes.get('/healthcheck', (_req: Request, res: Response) => {
  * /user:
  *   post:
  *     summary: Register a new user
+ *     description: >
+ *       If the email's domain isn't a known public provider (gmail.com etc.) and no
+ *       tenant is registered for it yet, a tenant is auto-created for that domain and
+ *       this user becomes its TenantManager. If a tenant already exists for the
+ *       domain, registration is rejected — the person should be invited by their
+ *       organization's manager instead (see POST /tenant/users).
  *     tags: [Auth]
  *     security: []
  *     requestBody:
@@ -136,3 +143,76 @@ publicRoutes.post(
 publicRoutes.post('/logout', async (req: Request, res: Response) => {
   await new UserController().logout(req, res);
 });
+
+/**
+ * @swagger
+ * /auth/forgot-password:
+ *   post:
+ *     summary: Request a password reset link
+ *     description: >
+ *       Always responds 200, whether or not the email is registered — this
+ *       never reveals which emails exist. If it is, an email is sent with a
+ *       reset link valid for 1 hour.
+ *     tags: [Auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Generic acknowledgement
+ *       429:
+ *         description: Too many requests
+ */
+publicRoutes.post(
+  '/auth/forgot-password',
+  authLimiter,
+  validateBody(ForgotPasswordSchema),
+  async (req: Request, res: Response) => {
+    await new UserController().forgotPassword(req, res);
+  },
+);
+
+/**
+ * @swagger
+ * /auth/reset-password:
+ *   post:
+ *     summary: Reset a password using a token from the forgot-password email
+ *     tags: [Auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [token, newPassword]
+ *             properties:
+ *               token:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password reset
+ *       400:
+ *         description: Invalid or expired reset link
+ *       429:
+ *         description: Too many requests
+ */
+publicRoutes.post(
+  '/auth/reset-password',
+  authLimiter,
+  validateBody(ResetPasswordSchema),
+  async (req: Request, res: Response) => {
+    await new UserController().resetPassword(req, res);
+  },
+);

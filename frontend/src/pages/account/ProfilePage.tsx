@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 
+import { ChangePasswordForm } from "../../components/ChangePasswordForm";
 import { useAuthStore } from "../../store/authStore";
 
 export function ProfilePage() {
@@ -46,6 +47,13 @@ export function ProfilePage() {
           {t("profile.tenantLabel")}
         </h2>
         <p className="text-slate-900">{user.tenantId ?? t("profile.noTenant")}</p>
+      </section>
+
+      <section className="flex flex-col gap-3 border-t border-slate-200 pt-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          {t("profile.changePasswordTitle")}
+        </h2>
+        <ChangePasswordForm />
       </section>
     </div>
   );

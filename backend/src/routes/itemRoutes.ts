@@ -2,12 +2,13 @@ import { Router } from 'express';
 import { ItemController } from '../controllers/ItemController';
 import { requireAuth } from '../middleware/requireAuth';
 import { resolveTenant } from '../middleware/resolveTenant';
+import { blockIfMustResetPassword } from '../middleware/blockIfMustResetPassword';
 import { validateBody, validateQuery } from '../middleware/validateBody';
 import { CreateItemSchema, UpdateItemSchema, PaginationSchema } from '../schemas/itemSchema';
 
 export const itemRoutes = Router();
 
-itemRoutes.use(resolveTenant);
+itemRoutes.use(blockIfMustResetPassword, resolveTenant);
 
 /**
  * @swagger
